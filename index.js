@@ -9,7 +9,6 @@ const app = express();
 const upload = multer({ dest: 'uploads/' });
 
 app.use(express.static('public'));
-
 app.use(express.urlencoded({ extended: true }));
 
 app.post('/upload', upload.single('excelFile'), (req, res) => {
@@ -40,25 +39,25 @@ app.post('/upload', upload.single('excelFile'), (req, res) => {
             ).join(' ');
 
             if (!salesTotals[normalizedName]) {
-                salesTotals[normalizedName] = 0;
+                salesTotals[normalizedName] = []; 
             }
-            salesTotals[normalizedName] += salesValue;
+            salesTotals[normalizedName].push(salesValue); 
         }
     }
 
     const commissionResults = {};
-    for (const [name, totalSales] of Object.entries(salesTotals)) {
-        const salesArray = Array.isArray(totalSales) ? totalSales : [totalSales];
-        const commission = calculateCommission(salesArray);
+    for (const [name, salesArray] of Object.entries(salesTotals)) {
+        const commission = calculateCommission(salesArray); 
         commissionResults[name] = {
-            totalSales,
+            totalSales: salesArray.reduce((a, b) => a + b, 0),
             commission: commission.totalCommission,
-            totalSalesCount: commission.y
+            totalSalesCount: commission.y 
         };
     }
 
     res.json(commissionResults);
 });
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
